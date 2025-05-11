@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Mugen_Reader_V2
 
 Mugen_Reader_V2 is an iOS, iPad and Vision OS app built using SwiftUI that connects with the MangaDex API to fetch and read manga. The app provides a simple, user-friendly interface to browse and read a wide range of manga.
@@ -62,3 +63,7 @@ https://github.com/carlosmbe/Mugen_Reader_V2/assets/53784701/93282584-6d7a-4319-
 
 
 
+=======
+# Manga-Reader
+Ứng dụng iOS đọc sách &amp; truyện đơn giản, sử dụng SwiftUI và API để hiển thị nội dung truyện, không yêu cầu đăng nhập.
+>>>>>>> 00ee80f7829cc1e43cca88791ea9c767db43bb15
