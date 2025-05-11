@@ -353,12 +353,13 @@ private extension AsyncImage {
 private extension CachedAsyncImage {
     private func remoteImage(from request: URLRequest, session: URLSession) async throws -> (Image, URLSessionTaskMetrics) {
         let (data, _, metrics) = try await session.data(for: request)
+        
+        // Xử lý cache logic
         if metrics.redirectCount > 0, let lastResponse = metrics.transactionMetrics.last?.response {
-            let requests = metrics.transactionMetrics.map { $0.request }
-            requests.forEach(session.configuration.urlCache!.removeCachedResponse)
             let lastCachedResponse = CachedURLResponse(response: lastResponse, data: data)
-            session.configuration.urlCache!.storeCachedResponse(lastCachedResponse, for: request)
+            session.configuration.urlCache?.storeCachedResponse(lastCachedResponse, for: request)
         }
+        
         return (try image(from: data), metrics)
     }
     
@@ -369,17 +370,15 @@ private extension CachedAsyncImage {
     
     private func image(from data: Data) throws -> Image {
 #if os(macOS)
-        if let nsImage = NSImage(data: data) {
-            return Image(nsImage: nsImage)
-        } else {
-            throw AsyncImage<Content>.LoadingError()
+        guard let nsImage = NSImage(data: data) else {
+            throw LoadingError(message: "Invalid image data")
         }
+        return Image(nsImage: nsImage)
 #else
-        if let uiImage = UIImage(data: data, scale: scale) {
-            return Image(uiImage: uiImage)
-        } else {
-            throw AsyncImage<Content>.LoadingError()
+        guard let uiImage = UIImage(data: data, scale: scale) else {
+            throw LoadingError(message: "Invalid image data")
         }
+        return Image(uiImage: uiImage)
 #endif
     }
 }

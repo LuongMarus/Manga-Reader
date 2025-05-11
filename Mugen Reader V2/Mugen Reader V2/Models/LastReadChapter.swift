@@ -2,55 +2,67 @@
 //  LastReadChapter.swift
 //  Mugen Reader V2
 //
-//  Created by Carlos Mbendera on 27/11/2022.
+//  Created By Marus on 10/05/2025.
 //
 
 import Foundation
 
-struct LastReadChapter : Codable, Identifiable{
-    let id : String
-    let MangaDetail : Manga
-    var Chapter : FeedChapter
+// MARK: - Model
+
+struct LastReadChapter: Codable, Identifiable {
+    let id: String
+    let MangaDetail: Manga
+    var Chapter: FeedChapter
 }
 
-func GetLastRead() -> [LastReadChapter]{
-    do{
-        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        let fileURL = paths[0].appendingPathComponent("LastReadChapters.json")
-        var dataInitLastRead = try Data(contentsOf: fileURL)
-        var dataArray = try JSONDecoder().decode([LastReadChapter].self, from: dataInitLastRead)
-        return dataArray
-    }catch{
-        print("Computed Var Failed Init \nError is \(error.localizedDescription)")
+// MARK: - Utilities
+
+/// Retrieves the list of last-read chapters from local storage.
+func getLastRead() -> [LastReadChapter] {
+    do {
+        let fileURL = getLastReadFileURL()
+        let data = try Data(contentsOf: fileURL)
+        return try JSONDecoder().decode([LastReadChapter].self, from: data)
+    } catch {
+        print("Failed to retrieve last-read chapters: \(error.localizedDescription)")
         return []
     }
 }
 
-func appendToLastReadChapters(_ lastRead : LastReadChapter){
-    var lastReadChapters = GetLastRead()
+/// Appends or updates a last-read chapter in the local storage.
+func appendToLastReadChapters(_ lastRead: LastReadChapter) {
+    var lastReadChapters = getLastRead()
     
-    if let sameManga = lastReadChapters.firstIndex(where: {$0.id == lastRead.id}){
-        lastReadChapters[sameManga] = lastRead
-    }else{
+    if let sameMangaIndex = lastReadChapters.firstIndex(where: { $0.id == lastRead.id }) {
+        lastReadChapters[sameMangaIndex] = lastRead
+    } else {
         lastReadChapters.append(lastRead)
     }
-    updateLastReadChapter(with: lastReadChapters)
+    
+    updateLastReadChapters(with: lastReadChapters)
 }
 
-func updateLastReadChapter(with newLastRead : [LastReadChapter]){
-    
-    do{
-        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        let fileURL = paths[0].appendingPathComponent("LastReadChapters.json")
-     
-        try JSONEncoder().encode(newLastRead).write(to: fileURL)
-        print("FInshed Encoding")
+/// Updates the list of last-read chapters in local storage.
+func updateLastReadChapters(with newLastRead: [LastReadChapter]) {
+    do {
+        let fileURL = getLastReadFileURL()
+        let encodedData = try JSONEncoder().encode(newLastRead)
+        try encodedData.write(to: fileURL)
+        print("Successfully updated last-read chapters.")
         
-        var jsonData = try Data(contentsOf: fileURL)
-        var finalData = try JSONDecoder().decode([LastReadChapter].self, from: jsonData)
-      //  print("Fianl Data is \(finalData)")
-    }catch{
-        print(error)
+        // Debugging: Verify saved data
+        let jsonData = try Data(contentsOf: fileURL)
+        let finalData = try JSONDecoder().decode([LastReadChapter].self, from: jsonData)
+        print("Final saved data: \(finalData)")
+    } catch {
+        print("Failed to update last-read chapters: \(error.localizedDescription)")
     }
-    
+}
+
+// MARK: - Helpers
+
+/// Returns the file URL for storing last-read chapters.
+private func getLastReadFileURL() -> URL {
+    let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+    return paths[0].appendingPathComponent("LastReadChapters.json")
 }
